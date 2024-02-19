@@ -1,0 +1,7 @@
+{
+  "inherits_from": "minecraft:third_person",
+  "zoomOut": 4.0,
+  "detached": true,
+  "bobView": true,
+  "mirrored": true
+}

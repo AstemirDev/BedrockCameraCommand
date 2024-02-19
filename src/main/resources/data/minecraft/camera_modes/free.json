@@ -1,0 +1,5 @@
+{
+  "inherits_from": "minecraft:free",
+  "detached": true,
+  "free": true
+}

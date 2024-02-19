@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ru.astemir.cameracommand.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "cameracommand.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "MixinCamera",
+    "MixinMinecraft",
+    "MixinOptions",
+    "MixinGameRenderer",
+    "MixinVideoSettingsScreen"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

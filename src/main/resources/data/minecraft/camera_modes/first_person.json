@@ -1,0 +1,4 @@
+{
+  "inherits_from": "minecraft:first_person",
+  "bobView": true
+}

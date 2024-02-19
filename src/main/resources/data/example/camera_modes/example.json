@@ -1,0 +1,10 @@
+{
+  "inherits_from": "minecraft:third_person",
+  "rotation": [20,0],
+  "offset": [0,0,1],
+  "zoomOut": 2,
+  "detached": true,
+  "mirrored": false,
+  "bobView": true,
+  "free": false
+}
