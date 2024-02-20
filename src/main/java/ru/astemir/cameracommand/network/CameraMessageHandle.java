@@ -7,6 +7,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkEvent;
 import ru.astemir.cameracommand.client.CameraFade;
 import ru.astemir.cameracommand.client.CameraManager;
+import ru.astemir.cameracommand.client.ExtendedOptions;
 import ru.astemir.cameracommand.common.camera.CameraLookTarget;
 import ru.astemir.cameracommand.common.camera.CameraMode;
 import ru.astemir.cameracommand.common.camera.EasingType;
@@ -16,11 +17,22 @@ public abstract class CameraMessageHandle {
     public abstract void accept(NetworkEvent.Context context);
 
     public static class Clear extends CameraMessageHandle {
+        private boolean disableFreeCam;
+
+        public Clear(boolean disableFreeCam) {
+            this.disableFreeCam = disableFreeCam;
+        }
+
         @Override
-        public void encode(FriendlyByteBuf buffer) {}
+        public void encode(FriendlyByteBuf buffer) {
+            buffer.writeBoolean(disableFreeCam);
+        }
         @Override
         public void accept(NetworkEvent.Context context) {
             CameraManager.getInstance().clear();
+            if (disableFreeCam) {
+                ExtendedOptions.disableFreecam();
+            }
         }
     }
 
@@ -115,8 +127,9 @@ public abstract class CameraMessageHandle {
 
         @Override
         public void accept(NetworkEvent.Context context) {
-            CameraManager.getInstance().setEasingType(easingType);
-            CameraManager.getInstance().optionCameraEasingTime.activate(easeTime);
+            CameraManager cameraManager = CameraManager.getInstance();
+            cameraManager.setEasingType(easingType);
+            cameraManager.optionCameraEasingTime.activate(easeTime);
         }
     }
 
@@ -136,9 +149,6 @@ public abstract class CameraMessageHandle {
         public void accept(NetworkEvent.Context context) {
             CameraManager properties = CameraManager.getInstance();
             properties.optionCameraPosition.activate(position);
-            if (!properties.optionCameraRotation.isEnabled() && !properties.optionCameraLookAt.isEnabled()) {
-                properties.rotation = new Vec2(Minecraft.getInstance().cameraEntity.getViewXRot(0), Minecraft.getInstance().cameraEntity.getViewYRot(0));
-            }
         }
     }
 

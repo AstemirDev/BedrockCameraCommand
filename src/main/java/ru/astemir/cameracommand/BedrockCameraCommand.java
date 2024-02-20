@@ -5,6 +5,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -31,14 +32,15 @@ public class BedrockCameraCommand {
         modEventBus.addListener(this::commonSetup);
         ArgumentTypes.COMMAND_ARGUMENT_TYPES.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
-        this.cameraManager = new CameraManager();
-        this.cameraFade = new CameraFade();
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,()->()->{
+            this.cameraManager = new CameraManager();
+            this.cameraFade = new CameraFade();
+        });
     }
 
     synchronized public static void initialize(){
         if (!INITIALIZED) {
-            int id = 0;
-            API_NETWORK.registerMessage(id++, ClientCameraPacket.class, ClientCameraPacket::encode, ClientCameraPacket::decode, new ClientCameraPacket.Handler());
+            API_NETWORK.registerMessage(0, ClientCameraPacket.class, ClientCameraPacket::encode, ClientCameraPacket::decode, new ClientCameraPacket.Handler());
         }
         INITIALIZED = true;
     }
@@ -47,10 +49,12 @@ public class BedrockCameraCommand {
         initialize();
     }
 
-    public static CameraManager getCameraProperties() {
+    @OnlyIn(Dist.CLIENT)
+    public static CameraManager getCameraManager() {
         return cameraManager;
     }
 
+    @OnlyIn(Dist.CLIENT)
     public static CameraFade getCameraFade(){
         return cameraFade;
     }

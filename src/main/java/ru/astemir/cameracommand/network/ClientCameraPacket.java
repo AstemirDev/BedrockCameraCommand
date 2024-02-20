@@ -11,7 +11,6 @@ import oshi.util.tuples.Pair;
 import ru.astemir.cameracommand.common.camera.CameraLookTarget;
 import ru.astemir.cameracommand.common.camera.CameraMode;
 import ru.astemir.cameracommand.common.camera.EasingType;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -41,8 +40,8 @@ public class ClientCameraPacket {
         return with(new Pair(CameraMessageType.ROTATION,new CameraMessageHandle.SetRotation(rotation)));
     }
 
-    public ClientCameraPacket clear(){
-        return with(new Pair(CameraMessageType.CLEAR,new CameraMessageHandle.Clear()));
+    public ClientCameraPacket clear(boolean disableFreeCam){
+        return with(new Pair(CameraMessageType.CLEAR,new CameraMessageHandle.Clear(disableFreeCam)));
     }
 
     public ClientCameraPacket lookAt(CameraLookTarget lookTarget){

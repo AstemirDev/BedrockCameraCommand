@@ -208,7 +208,7 @@ public class CommandCamera {
 
     private static int setCameraClear(CommandSourceStack commandSourceStack, Collection<ServerPlayer> players){
         for (ServerPlayer player : players) {
-            NetworkUtils.sendToPlayer(player, new ClientCameraPacket().clear());
+            NetworkUtils.sendToPlayer(player, new ClientCameraPacket().clear(false));
         }
         return 0;
     }

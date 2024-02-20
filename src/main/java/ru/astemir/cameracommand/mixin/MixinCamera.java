@@ -31,12 +31,7 @@ public abstract class MixinCamera implements ExtendedCamera {
     @Shadow private BlockGetter level;
     @Shadow private Entity entity;
     @Shadow private boolean detached;
-
     @Shadow public abstract Vec3 getPosition();
-
-    @Shadow public abstract float getXRot();
-
-    @Shadow public abstract float getYRot();
 
     @Inject(method = "setup",at=@At(value = "HEAD"),cancellable = true)
     public void onSetup(BlockGetter level, Entity cameraEntity, boolean detached, boolean mirrored, float partialTick, CallbackInfo ci){
@@ -48,6 +43,17 @@ public abstract class MixinCamera implements ExtendedCamera {
             }
             onCustomSetup(cameraManager,cameraMode,level, cameraEntity, partialTick);
             ci.cancel();
+        }
+    }
+
+    @Inject(method = "move",at = @At("HEAD"),cancellable = true)
+    public void onMove(double p_90569_, double p_90570_, double p_90571_, CallbackInfo ci){
+        CameraManager cameraManager = CameraManager.getInstance();
+        if (cameraManager.isEnabled()) {
+            CameraMode cameraMode = ExtendedCamera.getCameraMode();
+            if (cameraMode.isFree()){
+                ci.cancel();
+            }
         }
     }
 
@@ -76,18 +82,16 @@ public abstract class MixinCamera implements ExtendedCamera {
         }
         this.setRotation(new Vec2(Mth.wrapDegrees(cameraMode.getRotation().x+cameraRot.x),Mth.wrapDegrees(cameraMode.getRotation().y+cameraRot.y)),cameraMode.isMirrored());
         this.setPosition(cameraPos);
-        if (!cameraMode.isFree()) {
-            this.move(cameraOffset.x,cameraOffset.y,cameraOffset.z);
-            if (cameraMode.isDetached()) {
-                this.move(-this.getMaxZoom(cameraMode.getZoomOut()), 0, 0);
-            }
+        this.move(cameraOffset.x,cameraOffset.y,cameraOffset.z);
+        if (cameraMode.isDetached()) {
+            this.move(-this.getMaxZoom(cameraMode.getZoomOut()), 0, 0);
         }
         if (!cameraMode.isDetached()){
             if (cameraEntity instanceof LivingEntity livingEntity){
                 if (livingEntity.isSleeping()){
                     Direction direction = livingEntity.getBedOrientation();
                     if (direction != null) {
-                        setRotation(new Vec2(direction.toYRot() - 180.0F,0),cameraMode.isMirrored());
+                        setRotation(new Vec2(0,direction.toYRot() - 180.0F),cameraMode.isMirrored());
                     }
                     this.move(0,0.3D, 0);
                 }

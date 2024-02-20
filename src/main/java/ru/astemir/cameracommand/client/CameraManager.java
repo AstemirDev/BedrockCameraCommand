@@ -7,7 +7,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ComputeFovModifierEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import ru.astemir.cameracommand.BedrockCameraCommand;
@@ -15,10 +18,11 @@ import ru.astemir.cameracommand.common.camera.CameraLookTarget;
 import ru.astemir.cameracommand.common.camera.CameraMode;
 import ru.astemir.cameracommand.common.camera.EasingType;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE,modid = BedrockCameraCommand.MODID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE,modid = BedrockCameraCommand.MODID,value = Dist.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class CameraManager {
     public Tweener positionTweener = new Tweener();
-    private Tweener rotationTweener = new Tweener();
+    public Tweener rotationTweener = new Tweener();
     private EasingType easingType = EasingType.LINEAR;
     public ToggleableProperty<CameraMode> optionCameraMode = new ToggleableProperty();
     public ToggleableProperty<Vec3> optionCameraPosition = new ToggleableProperty<>();
@@ -26,13 +30,23 @@ public class CameraManager {
     public ToggleableProperty<CameraLookTarget> optionCameraLookAt = new ToggleableProperty<>();
     public ToggleableProperty<Float> optionCameraEasingTime = new ToggleableProperty<Float>().
             onActivated((f)->{
-                if (optionCameraPosition.isEnabled()) {
-                    positionTweener.tween(getPosition(), optionCameraPosition.getValue(),easingType, f);
+                Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+                if (this.optionCameraPosition.isEnabled()){
+                    Vec3 pos = getPosition();
+                    if (pos == null){
+                        pos = camera.getPosition();
+                    }
+                    positionTweener.tween(pos,this.optionCameraPosition.getValue(),easingType,f);
                 }
-                if (optionCameraRotation.isEnabled()) {
-                    rotationTweener.tween(getRotation(), optionCameraRotation.getValue(),easingType, f);
+                if (this.optionCameraRotation.isEnabled()){
+                    Vec2 rot = getRotation();
+                    if (rot == null){
+                        rot = new Vec2(camera.getXRot(),camera.getYRot());
+                    }
+                    rotationTweener.tween(rot,this.optionCameraRotation.getValue(),easingType,f);
                 }
             });
+
     public Vec3 position;
     public Vec2 rotation;
     public Vec2 lookAtRotation;
@@ -74,28 +88,22 @@ public class CameraManager {
         if (optionCameraLookAt.isEnabled()) {
             float partialTick = Minecraft.getInstance().getPartialTick();
             CameraLookTarget lookTarget = optionCameraLookAt.getValue();
+            Vec3 lookAtPos = new Vec3(0,0,0);
             if (lookTarget.isLookingAtEntity()) {
                 Entity lookAtEntity = Minecraft.getInstance().level.getEntity(lookTarget.getLookAtEntityId());
                 if (lookAtEntity == null){
                     optionCameraLookAt.deactivate();
                 }else {
-                    float deltaX = (float) (Mth.lerp(partialTick, lookAtEntity.xo, lookAtEntity.getX()) - position.x);
-                    float deltaY = (float) (Mth.lerp(partialTick, lookAtEntity.yo, lookAtEntity.getY())+lookAtEntity.getEyeHeight()/2 - position.y);
-                    float deltaZ = (float) (Mth.lerp(partialTick, lookAtEntity.zo, lookAtEntity.getZ()) - position.z);
-                    float xRot = (float)Mth.wrapDegrees((-(Mth.atan2(deltaY, (float) Math.sqrt(deltaX * deltaX + deltaZ * deltaZ)) * (double)(180F / (float)Math.PI))));
-                    float yRot = (float)Mth.wrapDegrees((Mth.atan2(deltaZ, deltaX) * (double)(180F / (float)Math.PI))) - 90.0F;
-                    return new Vec2(xRot, yRot);
+                    lookAtPos = new Vec3(Mth.lerp(partialTick,lookAtEntity.xo,lookAtEntity.getX()),Mth.lerp(partialTick,lookAtEntity.yo,lookAtEntity.getY())+lookAtEntity.getBbHeight()/2,Mth.lerp(partialTick,lookAtEntity.zo,lookAtEntity.getZ()));
                 }
             }else
             if (lookTarget.isLookingAtPos()){
-                Vec3 lookAtPos = lookTarget.getLookAtPos();
-                float deltaX = (float) (lookAtPos.x - position.x);
-                float deltaY = (float) (lookAtPos.y - position.y);
-                float deltaZ = (float) (lookAtPos.z - position.z);
-                float xRot = (float)Mth.wrapDegrees((-(Mth.atan2(deltaY, (float) Math.sqrt(deltaX * deltaX + deltaZ * deltaZ)) * (double)(180F / (float)Math.PI))));
-                float yRot = (float)Mth.wrapDegrees((Mth.atan2(deltaZ, deltaX) * (double)(180F / (float)Math.PI))) - 90.0F;
-                return new Vec2(xRot, yRot);
+                lookAtPos = lookTarget.getLookAtPos();
             }
+            Vec3 diff = new Vec3((float) (lookAtPos.x - position.x),(float) (lookAtPos.y - position.y),(float) (lookAtPos.z - position.z));
+            float xRot = (float)Mth.wrapDegrees((-(Mth.atan2(diff.y, (float) Math.sqrt(diff.x * diff.x + diff.z * diff.z)) * (double)(180F / (float)Math.PI))));
+            float yRot = (float)Mth.wrapDegrees((Mth.atan2(diff.z, diff.x) * (double)(180F / (float)Math.PI))) - 90.0F;
+            return new Vec2(xRot, yRot);
         }
         return new Vec2(0,0);
     }
@@ -136,8 +144,15 @@ public class CameraManager {
     }
 
     public Vec2 getGlobalRotation(){
-        float xRot = Mth.wrapDegrees(rotation.x+lookAtRotation.x);
-        float yRot = Mth.wrapDegrees(rotation.y+lookAtRotation.y);
+        float xRot;
+        float yRot;
+        if (optionCameraLookAt.isEnabled()) {
+            xRot = Mth.wrapDegrees(lookAtRotation.x);
+            yRot = Mth.wrapDegrees(lookAtRotation.y);
+        }else{
+            xRot = Mth.wrapDegrees(rotation.x);
+            yRot = Mth.wrapDegrees(rotation.y);
+        }
         return new Vec2(xRot,yRot);
     }
 
@@ -146,7 +161,7 @@ public class CameraManager {
     }
 
     public static CameraManager getInstance(){
-        return BedrockCameraCommand.getCameraProperties();
+        return BedrockCameraCommand.getCameraManager();
     }
 
     @SubscribeEvent

@@ -11,7 +11,7 @@ import ru.astemir.cameracommand.data.ServerCameraModeManager;
 import java.util.function.Function;
 
 public enum CameraMessageType{
-    CLEAR((buffer)->new CameraMessageHandle.Clear()),
+    CLEAR((buffer)->new CameraMessageHandle.Clear(buffer.readBoolean())),
     FADE_TIMINGS((buffer)->new CameraMessageHandle.FadeTimings(buffer.readInt(),buffer.readInt(),buffer.readInt())),
     FADE_COLOR((buffer)->new CameraMessageHandle.FadeColor(buffer.readInt(),buffer.readInt(),buffer.readInt())),
     MODE((buffer)-> new CameraMessageHandle.SetMode(ServerCameraModeManager.getCameraMode(buffer.readResourceLocation()))),

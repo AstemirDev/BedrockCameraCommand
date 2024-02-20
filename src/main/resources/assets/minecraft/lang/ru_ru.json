@@ -1,0 +1,8 @@
+{
+  "freecam.enabled": "Свободная камера включена",
+  "freecam.disabled": "Свободная камера отключена",
+  "options.cameraCommand": "Настраиваемая камера",
+  "argument.camera_mode.invalid": "Неверный тип камеры",
+  "argument.easing_type.invalid": "Неверный тип смягчения",
+  "key.toggleFreeCamera": "Свободная камера"
+}

@@ -3,6 +3,7 @@ package ru.astemir.cameracommand.common.event;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import ru.astemir.cameracommand.BedrockCameraCommand;
@@ -19,9 +20,16 @@ public class EventListener {
     }
 
     @SubscribeEvent
-    public static void onDie(LivingDeathEvent e){
+    public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent e){
         if (e.getEntity() instanceof ServerPlayer player) {
-            NetworkUtils.sendToPlayer(player, new ClientCameraPacket().clear());
+            NetworkUtils.sendToPlayer(player, new ClientCameraPacket().clear(true));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerDie(LivingDeathEvent e){
+        if (e.getEntity() instanceof ServerPlayer player) {
+            NetworkUtils.sendToPlayer(player, new ClientCameraPacket().clear(true));
         }
     }
 }

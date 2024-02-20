@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class ServerCameraModeManager extends SimpleJsonResourceReloadListener {
     private static Set<CameraMode> cameraModes = new HashSet<>();
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static boolean loaded;
     private static final Gson GSON = (new GsonBuilder()).create();
     private static final String folder = "camera_modes";
     public ServerCameraModeManager() {
@@ -28,7 +28,7 @@ public class ServerCameraModeManager extends SimpleJsonResourceReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> map, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
-        cameraModes = new HashSet<>();
+        this.cameraModes = new HashSet<>();
         for (Map.Entry<ResourceLocation, JsonElement> entry : map.entrySet()) {
             JsonElement jsonElement = entry.getValue();
             try {
@@ -70,6 +70,7 @@ public class ServerCameraModeManager extends SimpleJsonResourceReloadListener {
                 throw new RuntimeException("Invalid camera mode json: "+e);
             }
         }
+        this.loaded = true;
     }
 
     public static CameraMode getCameraMode(ResourceLocation resourceLocation){
@@ -83,5 +84,9 @@ public class ServerCameraModeManager extends SimpleJsonResourceReloadListener {
 
     public static Set<CameraMode> getCameraModes() {
         return cameraModes;
+    }
+
+    public static boolean isLoaded() {
+        return loaded;
     }
 }

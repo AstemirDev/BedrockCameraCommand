@@ -11,7 +11,9 @@
     "MixinMinecraft",
     "MixinOptions",
     "MixinGameRenderer",
-    "MixinVideoSettingsScreen"
+    "MixinVideoSettingsScreen",
+    "MixinClientPacketListener",
+    "MixinClientLevel"
   ],
   "injectors": {
     "defaultRequire": 1

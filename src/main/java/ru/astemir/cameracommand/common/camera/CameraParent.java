@@ -8,7 +8,6 @@ public enum CameraParent {
     THIRD_PERSON(new ResourceLocation("third_person")),
     THIRD_PERSON_BACK(new ResourceLocation("third_person_back")),
     FREE(new ResourceLocation("free"));
-
     private ResourceLocation resourceLocation;
     CameraParent(ResourceLocation resourceLocation) {
         this.resourceLocation = resourceLocation;
